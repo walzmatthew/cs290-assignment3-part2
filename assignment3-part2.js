@@ -32,6 +32,13 @@ function searchGitHub() {
   //clear the existing search results
   clearResults(resultsList);
   
+  //code adapted from Dustin Chase's contribution to Technical Discussion in Week 4 discussions page and AJAX video lecture
+  var GitHubRequest = new XMLHttpRequest();
+  var url = 'https://api.github.com/gists/public';
+  GitHubRequest.open('GET', url, true);
+  GitHubRequest.send();
+  GitHubRequest.onreadystatechange = alertContents;
+  
   //grab value from num_pages drop down <select>. Referenced below webpage for code: //http://stackoverflow.com/questions/1085801/get-selected-value-of-dropdownlist-using-javascript
   var numPageSelect = document.getElementById("num_pages");
   var numPages = numPageSelect.options[numPageSelect.selectedIndex].value;
@@ -44,9 +51,7 @@ function searchGitHub() {
     //check if new link is already in favorites
 	inFavs = false;
     string = "http://www.google.com" + i + "/";
-	console.log(string);
     for (var j = 0; j < localStorage.length; j++) {
-	  console.log(localStorage.key(j));
 	  if (string == localStorage.key(j)) {
 	    inFavs = true;
 	  }
@@ -121,3 +126,42 @@ function removeFromFavs(item) {
   //remove item from favorties list
   favsList.removeChild(item);
 }
+
+function alertContents() {
+  if (this.readyState === 4) {
+    if (this.status === 200) { //returned ok
+	  var content = new Array(90);
+	  var response = JSON.parse(this.responseText);
+	  for (var i = 0; i < 30; i++) {
+	    var index1 = 3;
+	    index1 *= i;
+		index2 = index1;
+		index2 += 1;
+		index3 = index1;
+		index3 += 2;
+	    content[index1] = response[i].url;
+		if (response[i].description === null) {
+		  content[index2] = 'Description was null';
+		}
+		else {
+	      content[index2] = response[i].description;
+		}
+	    var fileList = response[i].files;
+	    for (index in fileList) {
+		  if (fileList[index]['language'] === null) {
+		    content[index3] = 'Language was null';
+	      }
+		  else {
+		    content[index3] = fileList[index]['language'];
+		  }
+		}
+	  }
+	  for (var j = 0; j < 90; j++) {
+        console.log(content[j]);
+      }
+    }
+    else {
+      alert("There was a problem with the request.");
+    }
+  }
+}  
