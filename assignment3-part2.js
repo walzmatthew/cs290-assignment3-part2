@@ -32,52 +32,51 @@ function searchGitHub() {
   //clear the existing search results
   clearResults(resultsList);
   
-  //code adapted from Dustin Chase's contribution to Technical Discussion in Week 4 discussions page and AJAX video lecture
+  //Send a GET request to GitHub
   var GitHubRequest = new XMLHttpRequest();
-  var url = 'https://api.github.com/gists/public';
-  GitHubRequest.open('GET', url, true);
+  GitHubRequest.open('GET', 'https://api.github.com/gists/public', true);
   GitHubRequest.send();
   GitHubRequest.onreadystatechange = alertContents;
   
-  //grab value from num_pages drop down <select>. Referenced below webpage for code: //http://stackoverflow.com/questions/1085801/get-selected-value-of-dropdownlist-using-javascript
-  var numPageSelect = document.getElementById("num_pages");
-  var numPages = numPageSelect.options[numPageSelect.selectedIndex].value;
+  // //grab value from num_pages drop down <select>. Referenced below webpage for code: //http://stackoverflow.com/questions/1085801/get-selected-value-of-dropdownlist-using-javascript
+  // var numPageSelect = document.getElementById("num_pages");
+  // var numPages = numPageSelect.options[numPageSelect.selectedIndex].value;
   
-  //create variables for checking if new link is already in favorites
-  var inFavs = false;
-  var string = "string"
+  // //create variables for checking if new link is already in favorites
+  // var inFavs = false;
+  // var string = "string"
   
-  for (var i = 0; i < numPages; i++) {
-    //check if new link is already in favorites
-	inFavs = false;
-    string = "http://www.google.com" + i + "/";
-    for (var j = 0; j < localStorage.length; j++) {
-	  if (string == localStorage.key(j)) {
-	    inFavs = true;
-	  }
-	}
-	if (inFavs == false) {
-      //create new dt elements, text nodes with the text content for the dts, and hyperlinks
-      var listItem = document.createElement("dt");
-      var itemLink = document.createElement("a");
-      itemLink.href = "http://www.google.com" + i;
+  // for (var i = 0; i < numPages; i++) {
+    // //check if new link is already in favorites
+	// inFavs = false;
+    // string = "http://www.google.com" + i + "/";
+    // for (var j = 0; j < localStorage.length; j++) {
+	  // if (string == localStorage.key(j)) {
+	    // inFavs = true;
+	  // }
+	// }
+	// if (inFavs == false) {
+      // //create new dt elements, text nodes with the text content for the dts, and hyperlinks
+      // var listItem = document.createElement("dt");
+      // var itemLink = document.createElement("a");
+      // itemLink.href = "http://www.google.com" + i;
 
-      var itemText = document.createTextNode("item #" + i);
+      // var itemText = document.createTextNode("item #" + i);
 
-      //create a button to append to the dt which calls addToFavs when clicked. Help for how to wrap the button command to pass arguments from:
-      // http://stackoverflow.com/questions/14034737/creating-a-button-dynamically-with-arguments-for-onclick
-      var addToFavsButt = document.createElement('input');
-      addToFavsButt.setAttribute('type', 'button');
-      addToFavsButt.setAttribute('value', 'Add Gist to Favorites');
+      // //create a button to append to the dt which calls addToFavs when clicked. Help for how to wrap the button command to pass arguments from:
+      // // http://stackoverflow.com/questions/14034737/creating-a-button-dynamically-with-arguments-for-onclick
+      // var addToFavsButt = document.createElement('input');
+      // addToFavsButt.setAttribute('type', 'button');
+      // addToFavsButt.setAttribute('value', 'Add Gist to Favorites');
   
-      //append the text node to the hyperlink, then append the hyperlink and button to the dt, then append the dt to the dl
-      itemLink.appendChild(itemText);
-      listItem.appendChild(itemLink);
-      addToFavsButt.onclick = function() {addToFavs(this.parentElement)};
-      listItem.appendChild(addToFavsButt);
-      resultsList.appendChild(listItem);
-    }
-  }
+      // //append the text node to the hyperlink, then append the hyperlink and button to the dt, then append the dt to the dl
+      // itemLink.appendChild(itemText);
+      // listItem.appendChild(itemLink);
+      // addToFavsButt.onclick = function() {addToFavs(this.parentElement)};
+      // listItem.appendChild(addToFavsButt);
+      // resultsList.appendChild(listItem);
+    // }
+  // }
 }  
   
 function clearResults(results) {
@@ -140,7 +139,7 @@ function alertContents() {
 		index3 = index1;
 		index3 += 2;
 	    content[index1] = response[i].url;
-		if (response[i].description === null) {
+		if (!response[i].description) {
 		  content[index2] = 'Description was null';
 		}
 		else {
@@ -148,7 +147,7 @@ function alertContents() {
 		}
 	    var fileList = response[i].files;
 	    for (index in fileList) {
-		  if (fileList[index]['language'] === null) {
+		  if (!fileList[index]['language']) {
 		    content[index3] = 'Language was null';
 	      }
 		  else {
@@ -156,12 +155,50 @@ function alertContents() {
 		  }
 		}
 	  }
-	  for (var j = 0; j < 90; j++) {
-        console.log(content[j]);
-      }
+      createResultList(content);
     }
     else {
       alert("There was a problem with the request.");
     }
   }
 }  
+
+function createResultList(array) { //create dt's using the parsed content from GitHub and add to the Search Results dl
+  //get reference for the search results dl
+  var resultsList = document.getElementById("results_list");
+  
+  //create variable for checking if new link is already in favorites
+  var inFavs = false;
+  var k = 1;
+  
+  for (var i = 0; i < 90; i+=3) {
+    //check if new link is already in favorites
+	inFavs = false;
+	k = 1;
+	k += i;
+    for (var j = 0; j <= localStorage.length; j++) {
+	  if (array[i] == localStorage.key(j)) {
+	    inFavs = true;
+	  }
+	}
+	if (inFavs == false) { //if not already in favorites create new dt elements, text nodes with the descriptions for the dts, and hyperlinks
+      var listItem = document.createElement("dt");
+      var itemLink = document.createElement("a");
+      itemLink.href = array[i];
+      var itemText = document.createTextNode(array[k]);
+
+      //create a button to append to the dt which calls addToFavs when clicked. Help for how to wrap the button command to pass arguments from:
+      // http://stackoverflow.com/questions/14034737/creating-a-button-dynamically-with-arguments-for-onclick
+      var addToFavsButt = document.createElement('input');
+      addToFavsButt.setAttribute('type', 'button');
+      addToFavsButt.setAttribute('value', 'Add Gist to Favorites');
+  
+      //append the text node to the hyperlink, then append the hyperlink and button to the dt, then append the dt to the dl
+      itemLink.appendChild(itemText);
+      listItem.appendChild(itemLink);
+      addToFavsButt.onclick = function() {addToFavs(this.parentElement)};
+      listItem.appendChild(addToFavsButt);
+      resultsList.appendChild(listItem);
+    }
+  }
+}
